@@ -1,0 +1,17 @@
+              precision    recall  f1-score   support
+
+           0      0.911     0.874     0.892      3016
+           1      0.877     0.913     0.895      2984
+
+    accuracy                          0.893      6000
+   macro avg      0.894     0.893     0.893      6000
+weighted avg      0.894     0.893     0.893      6000
+
+Test Accuracy: 0.8933
+F1 (macro): 0.8933
+Precision (macro): 0.8939
+Recall (macro): 0.8934
+Confusion Matrix:
+[[2635  381]
+ [ 259 2725]]
+Simulation 2 macro f1: 0.893309. macro avg precision 0.893919. macro avg recall 0.893439. Kernel size 12. Filters 50. Batch size 1000. Epochs 1500. seq_len 500. Train size 28000. Mem_cells 50. Mem_cells2 10. dropout 0.100000. CNN layers 1, LSTM layers 1, pool_size_param 2, learning_rate_param 0.000500, initializer lecun_normal

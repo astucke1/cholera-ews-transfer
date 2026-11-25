@@ -1,0 +1,3 @@
+RAMP RULE (slow-parameter rule, C4; Chakraborty et al. 2024 analogue). transition = the day the ramp m0 + m1*t reaches m_c, the cycle-averaged threshold; seasonal forcing does not enter the label. Class balance is 50/50 by construction. Crossing day = (m_c - m0)/m1.
+
+Files: output_sims/tseries_batch{b}_sim{i}.csv, output_resids/resids_batch{b}_sim{i}.csv, output_labels/label_batch{b}.csv (0/1), output_labels/outbreak_times_batch{b}.csv (crossing day; tmax if none).

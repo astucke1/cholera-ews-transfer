@@ -1,0 +1,9 @@
+# Python 3.10+; versions are those used for the paper's runs where known, otherwise unpinned
+numpy
+pandas
+scipy
+scikit-learn
+matplotlib
+ewstools
+tensorflow
+keras

@@ -1,0 +1,3 @@
+INDEX RULE (seasonal-index rule, sensitivity analysis). transition = first day the seasonal index beta_b(t)/beta_b_c = (m0 + m1*t)*q(t)/(m_c) reaches 1. A seasonal peak can trigger it, so a ramp-null run can be labeled transition. Class balance is NOT 50/50.
+
+Files: output_sims/tseries_batch{b}_sim{i}.csv, output_resids/resids_batch{b}_sim{i}.csv, output_labels/label_batch{b}.csv (0/1), output_labels/outbreak_times_batch{b}.csv (crossing day; tmax if none).

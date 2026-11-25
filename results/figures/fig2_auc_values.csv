@@ -1,0 +1,7 @@
+indicator,n,AUC
+"Cholera-trained, W = 500",100000,0.8648
+"Cholera-trained, W = 100",100000,0.7293
+Lag-1 autocorrelation,100000,0.6546
+"SIDATR, W = 500",100000,0.6313
+Variance,100000,0.5559
+"SIDATR, W = 100",100000,0.4735
