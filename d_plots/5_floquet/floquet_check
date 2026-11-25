@@ -1,0 +1,63 @@
+# floquet_check.py: persistence threshold of the seasonally forced SEIARB model and its lag behind the slow-parameter label.
+# Usage: python floquet_check.py
+
+from pathlib import Path
+import numpy as np
+import pandas as pd
+from scipy.integrate import solve_ivp
+
+ROOT = Path(__file__).resolve().parent.parent.parent
+
+N = 11_637_398; mu = 4.30e-5; sigma = 0.5; p = 0.10
+gamma_s = 0.20; gamma_a = 0.333; alpha_s = 0.0062
+kappa = 1e6; eta_s = 10.0; eta_a = 1.0; delta = 0.3
+beta_s = 2.84e-11; beta_a = 9.29e-8; beta_0 = 3.748e-3
+A1, PHI1, A2, PHI2 = 0.131, 2.27, 0.235, 0.983
+
+C_s = p * sigma / ((sigma + mu) * (gamma_s + alpha_s + mu))
+C_a = (1 - p) * sigma / ((sigma + mu) * (gamma_a + mu))
+beta_b_c = (1 - (beta_s * C_s + beta_a * C_a)) / ((N / (kappa * delta)) * (eta_s * C_s + eta_a * C_a))
+m_c = beta_b_c / beta_0
+
+
+def spectral_radius(m, a1=A1, phi1=PHI1, a2=A2, phi2=PHI2):
+    def rhs(t, y):
+        q = 1 + a1 * np.sin(2 * np.pi * t / 365 + phi1) + a2 * np.sin(2 * np.pi * t / 182.5 + phi2)
+        A = np.array([[-(sigma + mu), beta_s, beta_a, m * beta_0 * q * N / kappa],
+                      [p * sigma, -(gamma_s + alpha_s + mu), 0, 0],
+                      [(1 - p) * sigma, 0, -(gamma_a + mu), 0],
+                      [0, eta_s, eta_a, -delta]])
+        return (A @ y.reshape(4, 4)).ravel()
+    sol = solve_ivp(rhs, (0, 365), np.eye(4).ravel(), method="LSODA", rtol=1e-10, atol=1e-12)
+    return max(abs(np.linalg.eigvals(sol.y[:, -1].reshape(4, 4))))
+
+
+def m_star(**forcing):
+    lo, hi = 0.5 * m_c, 1.5 * m_c
+    for _ in range(40):
+        mid = (lo + hi) / 2
+        lo, hi = (mid, hi) if spectral_radius(mid, **forcing) < 1 else (lo, mid)
+    return (lo + hi) / 2
+
+
+print(f"m_c (no seasonal forcing): {m_c:.4f}")
+print(f"m* with forcing switched off: {m_star(a1=0, a2=0):.4f}")
+ms = m_star()
+print(f"m* for the fitted seasonal profile: {ms:.4f} ({100 * (ms / m_c - 1):.2f}% above m_c)")
+
+rng = np.random.default_rng(1)
+jitter = []
+for _ in range(40):
+    jitter.append(m_star(a1=rng.uniform(0.118, 0.144), a2=rng.uniform(0.212, 0.259),
+                         phi1=PHI1 + 2 * np.pi * rng.uniform(-20, 20) / 365,
+                         phi2=PHI2 + 2 * np.pi * rng.uniform(-20, 20) / 182.5))
+print(f"m* across 40 draws of the seasonal jitter: {min(jitter):.4f} to {max(jitter):.4f}")
+
+both = pd.concat([pd.read_csv(ROOT / "results" / "labels" / "both_rules" / f"crossing_days_both_rules_batch{b}.csv")
+                  for b in range(1, 21)])
+tr = both[both.label_ramp_rule == 1]
+lag = (ms - m_c) / tr.m1
+print(f"days from the slow-parameter label to m*: median {lag.median():.0f}, "
+      f"interquartile {lag.quantile(0.25):.0f} to {lag.quantile(0.75):.0f}")
+print(f"transition simulations that reach m_c but not m* before the end of the run: "
+      f"{int((tr.crossing_day_ramp_rule + lag >= 1500).sum())} of {len(tr)}")
